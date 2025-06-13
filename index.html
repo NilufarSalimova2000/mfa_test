@@ -57,7 +57,6 @@
     </div>
 
     <script>
-        // Foydalanuvchi ma'lumotlari va yuz deskriptorlari uchun saqlash
         let users = JSON.parse(localStorage.getItem('users')) || {};
         let isRegisterMode = false;
         const video = document.getElementById('video');
@@ -70,53 +69,46 @@
         const message = document.getElementById('message');
         const formTitle = document.getElementById('form-title');
 
-        // Face-api modellarini yuklash
         async function loadModels() {
-            await faceapi.nets.ssdMobilenetv1.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
-            await faceapi.nets.faceLandmark68Net.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
-            await faceapi.nets.faceRecognitionNet.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
+            try {
+                await faceapi.nets.ssdMobilenetv1.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
+                await faceapi.nets.faceLandmark68Net.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
+                await faceapi.nets.faceRecognitionNet.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
+                message.textContent = "Modellar yuklandi. Ma'lumotlarni kiriting.";
+            } catch (err) {
+                message.textContent = "Modellarni yuklashda xato: " + err.message;
+            }
         }
 
-        // Veb-kamerani ishga tushirish
         async function startVideo() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
                 video.style.display = 'block';
                 canvas.style.display = 'block';
+                return true;
             } catch (err) {
                 message.textContent = 'Kamera ishga tushmadi: ' + err.message;
+                return false;
             }
         }
 
-        // Yuzni aniqlash va deskriptor olish
         async function getFaceDescriptor() {
             const detections = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
-            if (detections) {
-                return detections.descriptor;
-            }
-            return null;
+            return detections ? detections.descriptor : null;
         }
 
-        // Yuzlarni solishtirish
         function compareFaces(descriptor1, descriptor2) {
             const distance = faceapi.euclideanDistance(descriptor1, descriptor2);
-            return distance < 0.6; // 0.6 - bu o'xshashlik chegarasi
+            return distance < 0.6;
         }
 
-        // Ro'yxatdan o'tish
         async function register() {
-            const username = usernameInput.value;
-            const password = passwordInput.value;
-            const descriptor = await getFaceDescriptor();
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
 
             if (!username || !password) {
                 message.textContent = "Login va parol kiritilishi shart!";
-                return;
-            }
-
-            if (!descriptor) {
-                message.textContent = "Yuz aniqlanmadi! Iltimos, kameraga qarang.";
                 return;
             }
 
@@ -125,26 +117,38 @@
                 return;
             }
 
+            const videoStarted = await startVideo();
+            if (!videoStarted) return;
+
+            const descriptor = await getFaceDescriptor();
+            if (!descriptor) {
+                message.textContent = "Yuz aniqlanmadi! Iltimos, kameraga qarang.";
+                return;
+            }
+
             users[username] = {
                 password: password,
                 faceDescriptor: Array.from(descriptor)
             };
             localStorage.setItem('users', JSON.stringify(users));
-            message.textContent = "Ro'yxatdan o'tish muvaffaqiyatli!";
-            toggleForm();
+            message.textContent = "Ro'yxatdan o'tish muvaffaqiyatli! Tizimga muvaffaqiyatli kirdingiz.";
+            video.style.display = 'none';
+            canvas.style.display = 'none';
         }
 
-        // Kirish
         async function login() {
-            const username = usernameInput.value;
-            const password = passwordInput.value;
-            const descriptor = await getFaceDescriptor();
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
 
             if (!users[username] || users[username].password !== password) {
                 message.textContent = "Login yoki parol noto'g'ri!";
                 return;
             }
 
+            const videoStarted = await startVideo();
+            if (!videoStarted) return;
+
+            const descriptor = await getFaceDescriptor();
             if (!descriptor) {
                 message.textContent = "Yuz aniqlanmadi! Iltimos, kameraga qarang.";
                 return;
@@ -152,7 +156,7 @@
 
             const storedDescriptor = new Float32Array(users[username].faceDescriptor);
             if (compareFaces(descriptor, storedDescriptor)) {
-                message.textContent = "Kirish muvaffaqiyatli!";
+                message.textContent = "Tizimga muvaffaqiyatli kirdingiz!";
                 video.style.display = 'none';
                 canvas.style.display = 'none';
             } else {
@@ -160,7 +164,6 @@
             }
         }
 
-        // Formani o'zgartirish (Kirish/Ro'yxatdan o'tish)
         function toggleForm() {
             isRegisterMode = !isRegisterMode;
             formTitle.textContent = isRegisterMode ? "Ro'yxatdan o'tish" : "Kirish";
@@ -169,31 +172,22 @@
             message.textContent = "";
             usernameInput.value = "";
             passwordInput.value = "";
-            if (isRegisterMode) {
-                startVideo();
-            } else {
-                video.style.display = 'none';
-                canvas.style.display = 'none';
-            }
+            video.style.display = 'none';
+            canvas.style.display = 'none';
         }
 
-        // Submit tugmasi
         submitBtn.addEventListener('click', async () => {
+            message.textContent = "Tekshirilmoqda...";
             if (isRegisterMode) {
                 await register();
             } else {
-                await startVideo();
                 await login();
             }
         });
 
-        // Formani o'zgartirish tugmasi
         toggleFormBtn.addEventListener('click', toggleForm);
 
-        // Modellarni yuklash va dasturni boshlash
-        loadModels().then(() => {
-            message.textContent = "Modellar yuklandi. Kirish uchun ma'lumotlarni kiriting.";
-        });
+        loadModels();
     </script>
 </body>
 </html>
