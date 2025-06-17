@@ -1,0 +1,171 @@
+/* body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    flex-direction: column;
+}
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+video, canvas {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin: 10px auto;
+    border: 1px solid #ddd;
+    display: block;
+}
+input, button {
+    margin: 10px auto;
+    padding: 10px;
+    width: 90%;
+    max-width: 300px;
+    box-sizing: border-box;
+}
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+button:hover {
+    background-color: #45a049;
+}
+#message {
+    color: red;
+    font-size: 14px;
+    margin: 10px 0;
+}
+.success {
+    color: green;
+}
+#login-form,
+#register-form {
+    display: none;
+}
+
+#login-form.active,
+#register-form.active {
+    display: block;
+}
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+.input-hint {
+    font-size: 12px;
+    color: #555;
+    text-align: left;
+    margin: 5px 0 0 5px;
+}
+@media (max-width: 600px) {
+    .container { padding: 15px; }
+    video, canvas { max-width: 100%; }
+    input, button { font-size: 16px; }
+} */
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    flex-direction: column;
+}
+
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+
+video, canvas {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin: 10px auto;
+    border: 1px solid #ddd;
+    display: block;
+}
+
+input, button {
+    margin: 10px auto;
+    padding: 10px;
+    width: 90%;
+    max-width: 300px;
+    box-sizing: border-box;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    transition: border 0.3s ease;
+}
+
+input:focus {
+    border-color: #4CAF50;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+#message {
+    color: red;
+    font-size: 14px;
+    margin: 10px 0;
+}
+
+.success {
+    color: green;
+}
+
+#login-form,
+#register-form {
+    display: none;
+}
+
+#login-form.active,
+#register-form.active {
+    display: block;
+}
+
+/* Border ranglari */
+.input-error {
+    border: 2px solid #e74c3c !important; /* qizil */
+}
+
+.input-success {
+    border: 2px solid #2ecc71 !important; /* yashil */
+}
+
+@media (max-width: 600px) {
+    .container { padding: 15px; }
+    video, canvas { max-width: 100%; }
+    input, button { font-size: 16px; }
+}
