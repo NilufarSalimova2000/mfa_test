@@ -298,6 +298,7 @@
 
             const storedDescriptor = new Float32Array(users[username].faceDescriptor);
             if (compareFaces(descriptor, storedDescriptor)) {
+                window.location.href = 'dashboard.html';
                 message.textContent = "Tizimga muvaffaqiyatli kirdingiz!";
                 message.classList.add('success');
                 video.style.display = 'none';
