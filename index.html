@@ -58,11 +58,21 @@
         .success {
             color: green;
         }
-        .register-form, .relogin-form {
+        .register-form {
             display: none;
         }
         .active {
             display: block;
+        }
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .input-hint {
+            font-size: 12px;
+            color: #555;
+            text-align: left;
+            margin: 5px 0 0 5px;
         }
         @media (max-width: 600px) {
             .container {
@@ -81,24 +91,35 @@
     <div class="container">
         <h2 id="form-title">Kirish</h2>
         <div id="login-form" class="active">
-            <input type="text" id="username" placeholder="Login">
-            <input type="password" id="password" placeholder="Parol">
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Login">
+                <div class="input-hint">Kamida 8 belgi, harf va raqamlar aralash</div>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Parol">
+                <div class="input-hint">Faqat 4 raqam</div>
+            </div>
             <button id="submit-btn">Kirish</button>
             <button id="toggle-form">Ro'yxatdan o'tish</button>
         </div>
         <div id="register-form" class="register-form">
-            <input type="text" id="reg-firstname" placeholder="Ism">
-            <input type="text" id="reg-lastname" placeholder="Familiya">
-            <input type="email" id="reg-email" placeholder="Email">
-            <input type="text" id="reg-username" placeholder="Login">
-            <input type="password" id="reg-password" placeholder="Parol">
+            <div class="input-group">
+                <input type="text" id="reg-name" placeholder="Ism">
+                <div class="input-hint">Ismingizni kiriting</div>
+            </div>
+            <div class="input-group">
+                <input type="email" id="reg-email" placeholder="Email">
+                <div class="input-hint">To'g'ri email kiriting</div>
+            </div>
+            <div class="input-group">
+                <input type="text" id="reg-username" placeholder="Login">
+                <div class="input-hint">Kamida 8 belgi, harf va raqamlar aralash</div>
+            </div>
+            <div class="input-group">
+                <input type="password" id="reg-password" placeholder="Parol">
+                <div class="input-hint">Faqat 4 raqam</div>
+            </div>
             <button id="reg-submit-btn">Yuzni skan qilish</button>
-            <button id="back-to-login">Orqaga</button>
-        </div>
-        <div id="relogin-form" class="relogin-form">
-            <input type="text" id="relogin-username" placeholder="Login">
-            <input type="password" id="relogin-password" placeholder="Parol">
-            <button id="relogin-submit-btn">Kirish</button>
         </div>
         <video id="video" autoplay playsinline style="display: none;"></video>
         <canvas id="canvas" style="display: none;"></canvas>
@@ -108,45 +129,37 @@
     <script>
         let users = JSON.parse(localStorage.getItem('users')) || {};
         let isRegisterMode = false;
-        let tempUserData = null; // Yuz tekshiruvidan keyin vaqtincha saqlash uchun
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
-        const reloginForm = document.getElementById('relogin-form');
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
-        const regFirstname = document.getElementById('reg-firstname');
-        const regLastname = document.getElementById('reg-lastname');
+        const regName = document.getElementById('reg-name');
         const regEmail = document.getElementById('reg-email');
         const regUsername = document.getElementById('reg-username');
         const regPassword = document.getElementById('reg-password');
-        const reloginUsername = document.getElementById('relogin-username');
-        const reloginPassword = document.getElementById('relogin-password');
         const submitBtn = document.getElementById('submit-btn');
         const regSubmitBtn = document.getElementById('reg-submit-btn');
-        const reloginSubmitBtn = document.getElementById('relogin-submit-btn');
         const toggleFormBtn = document.getElementById('toggle-form');
-        const backToLoginBtn = document.getElementById('back-to-login');
         const message = document.getElementById('message');
         const formTitle = document.getElementById('form-title');
 
-        // Login va parol validatsiyasi
+        // Validatsiya funksiyalari
         function validateInput(username, password) {
-            const usernameRegex = /^[a-zA-Z0-9]{6,}$/; // 6+ belgi, faqat harf va raqam
-            const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9]).{8,}$/; // 8+ belgi, katta harf va raqam
+            const usernameRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{8,}$/;
+            const passwordRegex = /^[0-9]{4}$/;
             if (!usernameRegex.test(username)) {
-                message.textContent = "Login 6 yoki undan ko'p belgi bo'lishi kerak (faqat harf va raqam)!";
+                message.textContent = "Login kamida 8 belgi, harf va raqamlar aralash bo'lishi kerak!";
                 return false;
             }
             if (!passwordRegex.test(password)) {
-                message.textContent = "Parol 8 yoki undan ko'p belgi, kamida 1 katta harf va 1 raqam bo'lishi kerak!";
+                message.textContent = "Parol faqat 4 raqamdan iborat bo'lishi kerak!";
                 return false;
             }
             return true;
         }
 
-        // Email validatsiyasi
         function validateEmail(email) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return emailRegex.test(email);
@@ -154,7 +167,7 @@
 
         async function loadModels() {
             try {
-                await faceapi.nets.ssdMobilenetv1.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
+                await faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
                 await faceapi.nets.faceLandmark68Net.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
                 await faceapi.nets.faceRecognitionNet.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
                 message.textContent = "Modellar yuklandi. Ma'lumotlarni kiriting.";
@@ -170,8 +183,8 @@
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: 'user',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
                     }
                 });
                 video.srcObject = stream;
@@ -188,11 +201,11 @@
 
         async function getFaceDescriptor() {
             try {
-                const detections = await faceapi.detectSingleFace(video)
+                const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
                     .withFaceLandmarks()
                     .withFaceDescriptor();
                 if (!detections) {
-                    message.textContent = "Yuz aniqlanmadi! Iltimos, kameraga qarang.";
+                    message.textContent = "Yuz aniqlanmadi! Iltimos, kameraga qarang va yorug'lik yetarli ekanligiga ishonch hosil qiling.";
                     return null;
                 }
                 return detections.descriptor;
@@ -215,14 +228,13 @@
         }
 
         async function register() {
-            const firstname = regFirstname.value.trim();
-            const lastname = regLastname.value.trim();
+            const name = regName.value.trim();
             const email = regEmail.value.trim();
             const username = regUsername.value.trim();
             const password = regPassword.value.trim();
 
-            if (!firstname || !lastname || !email || !username || !password) {
-                message.textContent = "Barcha maydonlarni to'ldiring!";
+            if (!name || !email || !username || !password) {
+                message.textContent = "Barcha maydonlarni to'ldirish majburiy!";
                 return;
             }
 
@@ -247,54 +259,18 @@
             const descriptor = await getFaceDescriptor();
             if (!descriptor) return;
 
-            // Vaqtincha ma'lumotlarni saqlash
-            tempUserData = {
-                firstname,
-                lastname,
+            users[username] = {
+                name,
                 email,
-                username,
                 password,
                 faceDescriptor: Array.from(descriptor)
             };
-
-            // Relogin formasiga o'tish
-            registerForm.classList.remove('active');
-            reloginForm.classList.add('active');
-            formTitle.textContent = "Qayta kirish";
-            message.textContent = "Yuz muvaffaqiyatli aniqlandi. Iltimos, login va parolni kiriting.";
+            localStorage.setItem('users', JSON.stringify(users));
+            message.textContent = "Ro'yxatdan o'tish muvaffaqiyatli! Tizimga muvaffaqiyatli kirdingiz.";
             message.classList.add('success');
             video.style.display = 'none';
             canvas.style.display = 'none';
-        }
-
-        async function relogin() {
-            const username = reloginUsername.value.trim();
-            const password = reloginPassword.value.trim();
-
-            if (!username || !password) {
-                message.textContent = "Login va parol kiritilishi shart!";
-                return;
-            }
-
-            if (!tempUserData || tempUserData.username !== username || tempUserData.password !== password) {
-                message.textContent = "Login yoki parol noto'g'ri!";
-                return;
-            }
-
-            // Ma'lumotlarni saqlash
-            users[username] = {
-                firstname: tempUserData.firstname,
-                lastname: tempUserData.lastname,
-                email: tempUserData.email,
-                password: tempUserData.password,
-                faceDescriptor: tempUserData.faceDescriptor
-            };
-            localStorage.setItem('users', JSON.stringify(users));
-            tempUserData = null;
-
-            message.textContent = "Ro'yxatdan o'tish muvaffaqiyatli! Tizimga muvaffaqiyatli kirdingiz.";
-            message.classList.add('success');
-            reloginForm.classList.remove('active');
+            registerForm.classList.remove('active');
             loginForm.classList.add('active');
             formTitle.textContent = "Kirish";
         }
@@ -302,6 +278,11 @@
         async function login() {
             const username = usernameInput.value.trim();
             const password = passwordInput.value.trim();
+
+            if (!username || !password) {
+                message.textContent = "Login va parol kiritilishi shart!";
+                return;
+            }
 
             if (!users[username]) {
                 message.textContent = "Bunday login mavjud emas!";
@@ -348,13 +329,10 @@
             message.classList.remove('success');
             usernameInput.value = "";
             passwordInput.value = "";
-            regFirstname.value = "";
-            regLastname.value = "";
+            regName.value = "";
             regEmail.value = "";
             regUsername.value = "";
             regPassword.value = "";
-            reloginUsername.value = "";
-            reloginPassword.value = "";
             video.style.display = 'none';
             canvas.style.display = 'none';
         }
@@ -371,14 +349,7 @@
             await register();
         });
 
-        reloginSubmitBtn.addEventListener('click', async () => {
-            message.textContent = "Tekshirilmoqda...";
-            message.classList.remove('success');
-            await relogin();
-        });
-
         toggleFormBtn.addEventListener('click', toggleForm);
-        backToLoginBtn.addEventListener('click', toggleForm);
 
         loadModels();
     </script>
