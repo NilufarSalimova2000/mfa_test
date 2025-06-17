@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ikki Faktorli Autentifikatsiya</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/face-api.js/3.3.1/face-api.min.js"></script>
+    <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -75,15 +75,9 @@
             margin: 5px 0 0 5px;
         }
         @media (max-width: 600px) {
-            .container {
-                padding: 15px;
-            }
-            video, canvas {
-                max-width: 100%;
-            }
-            input, button {
-                font-size: 16px;
-            }
+            .container { padding: 15px; }
+            video, canvas { max-width: 100%; }
+            input, button { font-size: 16px; }
         }
     </style>
 </head>
@@ -145,7 +139,6 @@
         const message = document.getElementById('message');
         const formTitle = document.getElementById('form-title');
 
-        // Validatsiya funksiyalari
         function validateInput(username, password) {
             const usernameRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{8,}$/;
             const passwordRegex = /^[0-9]{4}$/;
@@ -167,9 +160,9 @@
 
         async function loadModels() {
             try {
-                await faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
-                await faceapi.nets.faceLandmark68Net.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
-                await faceapi.nets.faceRecognitionNet.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
+                await faceapi.nets.tinyFaceDetector.loadFromUri('/models/');
+                await faceapi.nets.faceLandmark68Net.loadFromUri('/models/');
+                await faceapi.nets.faceRecognitionNet.loadFromUri('/models/');
                 message.textContent = "Modellar yuklandi. Ma'lumotlarni kiriting.";
                 message.classList.remove('success');
             } catch (err) {
@@ -181,11 +174,7 @@
         async function startVideo() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'user',
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
-                    }
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
                 });
                 video.srcObject = stream;
                 video.style.display = 'block';
@@ -284,6 +273,10 @@
                 return;
             }
 
+            if (!validateInput(username, password)) {
+                return;
+            }
+
             if (!users[username]) {
                 message.textContent = "Bunday login mavjud emas!";
                 return;
@@ -351,7 +344,12 @@
 
         toggleFormBtn.addEventListener('click', toggleForm);
 
-        loadModels();
+        if (typeof faceapi === 'undefined') {
+            message.textContent = "face-api.js yuklanmadi. Internet aloqangizni tekshiring.";
+            console.error("face-api.js yuklanmadi.");
+        } else {
+            loadModels();
+        }
     </script>
 </body>
 </html>
