@@ -1,3 +1,4 @@
+// foydalanuvchi local storagega saqlanadi
 let users = JSON.parse(localStorage.getItem('users')) || {};
 let isRegisterMode = false;
 const video = document.getElementById('video');
@@ -16,6 +17,7 @@ const toggleFormBtn = document.getElementById('toggle-form');
 const message = document.getElementById('message');
 const formTitle = document.getElementById('form-title');
 
+// validatsiya- login parol uchun
 function validateInput(username, password, isRegister = false) {
     const usernameRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{8,}$/;
     const passwordRegex = /^[0-9]{4}$/;
@@ -47,16 +49,18 @@ function validateInput(username, password, isRegister = false) {
     return valid;
 }
 
+// validatsiya email uchun
 function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
 
+// face-api.js kutubxonasining kerakli model fayllarini yuklash uchun
 async function loadModels() {
     try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri('/models/');
-        await faceapi.nets.faceLandmark68Net.loadFromUri('/models/');
-        await faceapi.nets.faceRecognitionNet.loadFromUri('/models/');
+        await faceapi.nets.tinyFaceDetector.loadFromUri('/models/'); // yuzni tez aniqlash
+        await faceapi.nets.faceLandmark68Net.loadFromUri('/models/'); // yuz nuqtalarini aniqlash (ko‘z, burun, og‘iz)
+        await faceapi.nets.faceRecognitionNet.loadFromUri('/models/'); // yuz descriptor (raqamli ifoda) olish
         message.textContent = "Modellar yuklandi. Ma'lumotlarni kiriting.";
         message.classList.remove('success');
     } catch (err) {
@@ -65,6 +69,7 @@ async function loadModels() {
     }
 }
 
+// kamera orqali videoni ishga tushirish
 async function startVideo() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -82,6 +87,8 @@ async function startVideo() {
     }
 }
 
+// Video oqimdagi yuzni aniqlab, yuzning descriptor’ini qaytaradi.
+// Descriptor — bu yuzning raqamli “izidir” identifikatsiya uchun ishlatiladi.
 async function getFaceDescriptor() {
     try {
         const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
@@ -100,6 +107,7 @@ async function getFaceDescriptor() {
     }
 }
 
+// Ikki yuz descriptor orasidagi o‘xshashlikni o‘lchaydi
 function compareFaces(descriptor1, descriptor2) {
     try {
         const distance = faceapi.euclideanDistance(descriptor1, descriptor2);
@@ -111,6 +119,7 @@ function compareFaces(descriptor1, descriptor2) {
     }
 }
 
+// Foydalanuvchini ro‘yxatdan o‘tkazadi
 async function register() {
     const name = regName.value.trim();
     const email = regEmail.value.trim();
@@ -157,6 +166,7 @@ async function register() {
     formTitle.textContent = "Kirish";
 }
 
+// logindan o'tkazadi
 async function login() {
     const username = usernameInput.value.trim();
     const password = passwordInput.value.trim();
@@ -197,6 +207,7 @@ async function login() {
     canvas.style.display = 'none';
 }
 
+// Login formasi va ro‘yxatdan o‘tish formasini o‘zaro almashadi
 function toggleForm() {
     isRegisterMode = !isRegisterMode;
     if (isRegisterMode) {
